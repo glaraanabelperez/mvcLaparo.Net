@@ -1,0 +1,72 @@
+﻿@model mvc.Laparoscopy.Models.ContactoViewModel
+
+@{
+    ViewData["Title"] = "Contactenos";
+}
+
+<div class="contact-container">
+
+    <div class="contact-header">
+        <h2>Contáctenos</h2>
+        <p>Estamos para asesorarlo y brindarle la mejor solución.</p>
+    </div>
+
+    @if (TempData["MensajeEnviado"] != null)
+    {
+        <div class="alert-success">
+            Su mensaje fue enviado correctamente. Nos comunicaremos a la brevedad.
+        </div>
+    }
+
+    <div class="contact-content">
+
+        <div class="contact-form">
+            <form asp-action="Contactenos" method="post">
+
+                <div class="form-group">
+                    <label>Nombre</label>
+                    <input asp-for="Nombre" class="form-control" />
+                    <span asp-validation-for="Nombre" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label>Email</label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label>Teléfono</label>
+                    <input asp-for="Telefono" class="form-control" />
+                    <span asp-validation-for="Telefono" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label>Mensaje</label>
+                    <textarea asp-for="Mensaje" class="form-control" rows="5"></textarea>
+                    <span asp-validation-for="Mensaje" class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="btn-contact">
+                    Enviar Mensaje
+                </button>
+            </form>
+        </div>
+
+        <div class="contact-info">
+            <h4>Información de contacto</h4>
+            <p><strong>Teléfono:</strong> +54 11 1234 5678</p>
+            <p><strong>Email:</strong> info@mvclaparoscopy.com</p>
+            <p><strong>Dirección:</strong> Buenos Aires, Argentina</p>
+
+            <div class="contact-image">
+                <i class="fa-solid fa-user-doctor"></i>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

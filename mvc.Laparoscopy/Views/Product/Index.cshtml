@@ -1,0 +1,175 @@
+@model mvc.Laparoscopy.Models.PagedResponse<mvc.Laparoscopy.Models.ProductViewModel>
+    @using System.Globalization
+
+    @{
+    ViewData["Title"] = "Productos";
+    }
+
+    <h2 class="mb-4">Productos</h2>
+<form method="get" asp-action="Index">
+    <div class="input-group mb-3">
+        <input type="text"
+               name="search"
+               value="@Context.Request.Query["search"]"
+               class="form-control"
+               placeholder="Buscar producto..." />
+
+        <button type="submit" class="btn btn-primary">
+            Buscar
+        </button>
+    </div>
+</form>
+    <div class="row">
+        @foreach (var product in Model.Items)
+{
+        <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+            <div class="product-card card product-card h-100 shadow-sm"
+                 data-bs-toggle="modal"
+                 data-bs-target="#productModal"
+                 data-name="@product.Name"
+                 data-desc="@product.Description"
+                 data-price="@product.TotalPrice.ToString("C", new System.Globalization.CultureInfo("es-AR"))"
+                 data-img="@(string.IsNullOrEmpty(product.Image) ? "/product-images/camera.png" : "/product-images/" + product.Image)"
+                >
+                @if(string.IsNullOrEmpty(product.Image))
+                {
+                    <div class="product-image-wrapper">
+                        <img src="/images/camera.png"
+                             class="product-image" />
+                    </div>
+                }
+                else
+                {
+                    <div class="product-image-wrapper product-image">
+                        <img src="/product-images/@product.Image"
+                             class="product-image" />
+                    </div>
+                }
+                
+
+                <div class="card-body d-flex flex-column">
+                    <h6 class="product-title">@product.Name</h6>
+
+                    <p class="product-description">
+                        @product.Description
+                    </p>
+
+                    <div class="mt-auto">
+                        <div class="product-price">
+                            @product.TotalPrice.ToString("C", new System.Globalization.CultureInfo("es-AR"))
+                        </div>
+
+                        <small class="text-muted">@product.Codigo</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+}
+    </div>
+
+<div class="modal fade" id="productModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-body text-center">
+
+                    <div class="product-image-wrapper product-image">
+                        <img id="modalImg" 
+                             class="product-image" />
+                    </div>
+
+@*                 <img id="modalImg" class="img-fluid mb-3">
+ *@
+                <h4 id="modalName"></h4>
+                <p id="modalDesc"></p>
+                <h5 class="text-success" id="modalPrice"></h5>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+    @if (Model.Pages > 1)
+{
+    <nav>
+        <ul class="pagination">
+            @for (int i = 1; i <= Model.Pages; i++)
+            {
+            <li class="page-item @(i == Model.Page ? "active" : "")">
+                <a class="page-link"
+                   asp-action="Index"
+                   asp-route-page="@i">
+                    @i
+                </a>
+            </li>
+            }
+        </ul>
+    </nav>
+}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        document.querySelectorAll("img.product-image").forEach(img => {
+
+            function checkSize(){
+
+
+                        const MAX_WIDTH = 293;
+            const MAX_HEIGHT = 220;
+
+            const rect = img.getBoundingClientRect();
+            const realWidth = rect.width;
+            const realHeight = rect.height;
+
+            // calcular escala en base a ambos límites
+            const scaleWidth = MAX_WIDTH / realWidth;
+            const scaleHeight = MAX_HEIGHT / realHeight;
+
+            // tomar el menor para no superar ninguno
+            const scale = Math.min(scaleWidth, scaleHeight, 1.2);
+
+            img.style.transform = `scale(${scale})`;
+            img.style.transformOrigin = "center";
+
+            console.log("width:", realWidth, "height:", realHeight, "scale:", scale);
+
+
+                }
+
+            // si ya cargó
+            if(img.complete){
+                checkSize();
+            }
+            else{
+                img.onload = checkSize;
+            }
+
+        });
+
+    });
+
+//
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const modal = document.getElementById("productModal");
+
+        modal.addEventListener("show.bs.modal", function (event) {
+
+            const card = event.relatedTarget;
+
+            document.getElementById("modalName").textContent = card.dataset.name;
+            document.getElementById("modalDesc").textContent = card.dataset.desc;
+            document.getElementById("modalPrice").textContent = "$ " + card.dataset.price;
+            document.getElementById("modalImg").src = card.dataset.img;
+
+        });
+
+    });
+
+</script>
+
+
