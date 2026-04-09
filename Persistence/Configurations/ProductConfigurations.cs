@@ -34,14 +34,18 @@ namespace mvc.Laparoscopy.Persistence.Configurations
               .HasColumnName("fauvorite");
             builder.Property(e => e.DiscountId)
                .HasColumnName("discountId");
+
             builder.Property(e => e.Codigo)
                 .HasColumnName("codigo");
-            builder.Property(e => e.Category)
-                .HasColumnName("category");
+
+            builder.Property(e => e.CategoryNameId)
+                .HasColumnName("CategoryNameId");
 
 
 
-
+            builder.HasOne(e => e.Category_)
+            .WithMany(e => e.Products)
+            .HasForeignKey(e => e.CategoryNameId);
 
             builder.HasOne(e => e.Discount_)
             .WithMany(e => e.Products)

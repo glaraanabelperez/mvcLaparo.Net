@@ -4,6 +4,7 @@ using System.Diagnostics;
 
 namespace mvc.Laparoscopy.Controllers
 {
+    [Route("import-surgery/Home")]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;

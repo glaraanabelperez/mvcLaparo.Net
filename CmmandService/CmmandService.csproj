@@ -8,12 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="12.0.1" />
+    <PackageReference Include="AutoMapper" Version="15.1.3" />
     <PackageReference Include="EPPlus" Version="5.8.3" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.2" />
     <PackageReference Include="Serilog.Settings.Configuration" Version="8.0.1-dev-00583" />
-    <PackageReference Include="Serilog.Sinks.File" Version="5.0.1-dev-00972" />
-    <PackageReference Include="Serilog.Sinks.MSSqlServer" Version="6.6.1-dev-00077" />
+    <!--<PackageReference Include="Serilog.Sinks.File" Version="5.0.1-dev-00972" />-->
+    <!--<PackageReference Include="Serilog.Sinks.MSSqlServer" Version="6.6.1-dev-00077" />-->
   </ItemGroup>
 
   <ItemGroup>

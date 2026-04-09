@@ -9,6 +9,7 @@ namespace mvc.Laparoscopy.Persistence
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
+        public virtual DbSet<Category> Category { get; set; } = null!;
         public virtual DbSet<Product> Products { get; set; } = null!;
         public virtual DbSet<User> Users { get; set; } = null!;
         public virtual DbSet<Discount> Discount_ { get; set; } = null!;
@@ -20,6 +21,7 @@ namespace mvc.Laparoscopy.Persistence
             modelBuilder.ApplyConfiguration(new ProductConfigurations());
             modelBuilder.ApplyConfiguration(new UserConfigurations());
             modelBuilder.ApplyConfiguration(new DiscountConfigurations());
+            modelBuilder.ApplyConfiguration(new CategoryConfigurations());
 
         }
     }

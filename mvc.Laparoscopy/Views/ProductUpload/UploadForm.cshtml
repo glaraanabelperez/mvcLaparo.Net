@@ -1,0 +1,19 @@
+@if (TempData["Success"] != null)
+{
+    <div style="color: green;">
+        @TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div style="color: red;">
+        @TempData["Error"]
+    </div>
+}
+<div>
+    <form asp-controller="ProductUpload" asp-action="UploadFiles" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" />
+        <button type="submit">Subir</button>
+    </form>
+</div>

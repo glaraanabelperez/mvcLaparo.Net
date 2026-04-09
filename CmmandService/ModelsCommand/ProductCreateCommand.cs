@@ -1,9 +1,10 @@
 ﻿
+using Models;
+
 namespace CmmandService.ModelsCommand
 {
     public class ProductCreateCommand
     {
-        public string? Category { get; set; }
         public string? Description { get; set; } 
         public bool State { get; set; }
         public decimal? Price { get; set; }
@@ -14,6 +15,9 @@ namespace CmmandService.ModelsCommand
         public bool? Fauvorite { get; set; }
         public DateTime? DateInit { get; set; }
         public string? image { get; set; }
+        public Category? Category { get; set; }
+        public Discount? Discount { get; set; }
+
 
     }
 }

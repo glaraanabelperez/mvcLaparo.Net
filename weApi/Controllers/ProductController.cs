@@ -58,7 +58,7 @@ namespace webApi.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);//poner bien el manejo del 400 y del 500
+                return BadRequest(ex.Message);//poner bien el manejo del 400 y del 500 y de mensajes personalizados
             }
 
             

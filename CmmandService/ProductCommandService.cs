@@ -4,11 +4,11 @@ using CmmandService.ModelsCommand;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Win32;
+using Microsoft.Extensions.Options;
 using Models;
+using mvc.Laparoscopy.Persistence;
 using OfficeOpenXml;
 using Repositorys.Interfaces;
-using System.Drawing.Text;
 using System.Text.RegularExpressions;
 using Utils;
 
@@ -16,30 +16,28 @@ namespace CmmandService
 {
     public class ProductCommandService: IProductCommandService
     {
-        private readonly ILogger<ProductCommandService> _logger;
-        //private readonly IProductRepository _productRepo;
+        private readonly ILogger<ProductCommandService> logger;
         public IGenericRepository commandGeneric;
-        public string imagesPath = Path.Combine(
-                                     @"C:\Uploads",
-                                     "images",
-                                     "products"
-                                 );
+        private readonly ApplicationDbContext dbContext;
+        private readonly IOptions<PathsOptions> _options;
+        private string tempPath; 
+        private string imagesPath;
 
-        public string tempPath = Path.Combine(
-                             @"C:\Uploads",
-                             "images",
-                             "products-temp"
-                         );
-        public ProductCommandService( IGenericRepository command, 
-            ILogger<ProductCommandService> logger)
+        public ProductCommandService(IOptions<PathsOptions> options, IGenericRepository command, ApplicationDbContext _dbContext, ILogger<ProductCommandService> _logger)
         {
-            this.commandGeneric = command;
-            //_productRepo = productRepo;
-            _logger = logger;
+            commandGeneric = command;
+            dbContext = _dbContext;
+            logger = _logger;
+            _options= options;
+            tempPath = _options.Value.tempPath;
+            imagesPath = _options.Value.imagesPath;
+            
         }
 
         public async Task<ResultApp<Product?>> Add(ProductCreateCommand command)
         {
+        
+
             var res = new ResultApp<Product?>();
             try
             {
@@ -51,37 +49,38 @@ namespace CmmandService
             catch (Exception ex)
             {
                 var msg = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
-                _logger.LogWarning(msg);
+                logger.LogWarning(msg);
                 res.Succeeded = false;
                 res.message = msg;
             }
             return res;
         }
 
+        private async Task AddListCategorys(List<Category> categorys)
+        {
+            var res = new ResultApp<Category?>();
+            try
+            {
+                await this.commandGeneric.AddRange<Category>(categorys);             
+            }
+            catch (Exception ex)
+            {            
+                var msg = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                logger.LogWarning(msg);
+                throw;
+            }
+        }//
         private async Task<ResultApp<Product?>> AddList(List<Product> products)
         {
             var res = new ResultApp<Product?>();
             try
             {
-                //await this.DeleteProduct();
+                CleanProducts();
                 var numberAgregated = await this.commandGeneric.AddRange<Product>(products);
-                if (numberAgregated)
-                {
-                    res.Succeeded = true;
-                    res.message = "Creado";
+                RestoreImages(numberAgregated);
+                res.Succeeded = true;
+                res.message = "Creado";
 
-                    if (Directory.Exists(tempPath))
-                        Directory.Delete(tempPath, true);
-                }
-                else
-                {
-                    if (Directory.Exists(tempPath))
-                        ExcelImageHelper.MoveImageBackup(tempPath, imagesPath);
-
-                    res.Succeeded = false;
-                    res.message = "No se han podido agregar los productos";
-                }
-               
             }
             catch (Exception ex)
             {
@@ -92,14 +91,46 @@ namespace CmmandService
                 }
                    
                 var msg = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
-                _logger.LogWarning(msg);
+                logger.LogWarning(msg);
                 res.Succeeded = false;
                 res.message = msg;
             }
             return res;
-        }
+        }//
 
-        private void DeleteFolderImagePreview(string imagesPath, string tempPath)
+        public void RestoreImages(bool agregated)
+        {
+            try
+            {
+                if (agregated)
+                    Directory.Delete(tempPath, true);
+                else
+                {
+
+                    ExcelImageHelper.MoveImageBackup(tempPath, imagesPath);
+                    Directory.Delete(tempPath, true);
+                }
+            }
+            catch (IOException e)
+            {
+                logger.LogWarning(e.Message);
+                throw;
+            }          
+        }
+        public async void CleanProducts()//
+        {
+            try
+            {
+                await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM Product");
+            }
+            catch (Exception ex)
+            {
+                var msg = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                logger.LogWarning(msg);
+                throw;
+            }
+        }
+        private void BackupImages(string imagesPath, string tempPath)
         {
 
             try
@@ -124,13 +155,10 @@ namespace CmmandService
             }
             catch (IOException e)
             {
-                //// fallback seguro
-                //ExcelImageHelper.LimpiarCarpetaSafe(imagesPath);
-                _logger.LogWarning(e.Message);
+                logger.LogWarning(e.Message);
                 throw;
             }
         }
-
         public Product MapToEntity(ProductCreateCommand command_)
         {
             Product entity = new Product();
@@ -144,19 +172,26 @@ namespace CmmandService
               entity.Price = command_.Price; 
               entity.DiscountId = command_.DiscountId;
               entity.TotalPrice  = command_.TotalPrice;
-              entity.Category = command_.Category;
-
+              if(command_.Category != null)
+              {
+               entity.Category_ = command_.Category;
+              }
 
             return entity;
         }
-
-        public async Task ChargeData(IFormFile file)
+        public async Task<Dictionary<string, Category>> GetCategoys()//
         {
-
+            var categories =  await dbContext.Category
+                    .ToDictionaryAsync(c => c.Name, StringComparer.OrdinalIgnoreCase);
+            return categories;
+        }
+        public async Task ChargeData(IFormFile file)
+        {           
             var dataList = new List<Product>();
+            var dataListCategory = new List<Category>();
 
             ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
-
+            var categorias_dictionary = await GetCategoys();
 
             using (var stream = file.OpenReadStream())
             using (var package = new ExcelPackage(stream))
@@ -176,65 +211,78 @@ namespace CmmandService
                     if (!string.IsNullOrEmpty(header) && !headerMap.ContainsKey(header))
                         headerMap[header] = c;
                 }
-
+                
                 headerMap.TryGetValue("Imagen", out var colImagen);
                 headerMap.TryGetValue("Categoria", out var colCategoria);
                 headerMap.TryGetValue("Producto", out var colProducto);
                 headerMap.TryGetValue("Codigo", out var colCodigo);
                 headerMap.TryGetValue("Descripcion", out var colDescripcion);
                 headerMap.TryGetValue("Precio", out var colPrecio);
+                
+                if(colCategoria <= 0 || colProducto <= 0 || colCodigo <= 0 || colDescripcion <= 0)
+                    throw new Exception("Faltan algunas de estas columnas obligatorias: Especialidad, Producto, Codigo, Descripcion .");
 
+
+                //Guarda imagenes en carpeta temporal antes de limpiar la carpeta definitiva para evitar perdida de imagenes en caso de error
+                BackupImages(imagesPath, tempPath);
                 string? imageName = null;
                 int imgenCombinaRow = 0;
 
-                
-
-                DeleteFolderImagePreview(imagesPath, tempPath);
+                //Obtiene categorias de la bbdd para evitar duplicados y mejorar rendimiento-
 
                 for (int row = 2; row <= rowCount; row++)
-                    {
+                {
 
-                        imageName = ExcelImageHelper.SaveImageFromCell(
-                                                    worksheet,
-                                                    row,
-                                                    colImagen,
-                                                    imagesPath
-                                                    );
+                   imageName = ExcelImageHelper.SaveImageFromCell(
+                                               worksheet,
+                                               row,
+                                               colImagen,
+                                               imagesPath
+                                               );
 
-                        string categoriaName = colCategoria > 0 ? worksheet.Cells[row, colCategoria].Text?.Trim() ?? "" : "";
 
-                        string name = colProducto > 0 ? worksheet.Cells[row, colProducto].Text?.Trim() ?? "" : "";
-                        string codigo = colCodigo > 0 ? worksheet.Cells[row, colCodigo].Text?.Trim() ?? "" : "";
+                   string categoriaName = colCategoria > 0 ? worksheet.Cells[row, colCategoria].Text?.Trim() ?? "" : "";
 
-                        string descripcion = (colDescripcion > 0 && string.IsNullOrEmpty(worksheet.Cells[row, colDescripcion].Text))
-                            ? string.Join(" ",
-                                (worksheet.Cells[row, colDescripcion].Text ?? "")
-                                    .Split(' ', StringSplitOptions.RemoveEmptyEntries)) : "";
+                   //Agrega Categoria en la bbdd o en el diccionario si no existe para evitar duplicados-
+                   if (!categorias_dictionary.TryGetValue(categoriaName, out var category))
+                   {
+                        category = new Category { Name = categoriaName.ToUpper() };
+                        categorias_dictionary[categoriaName] = category;
+                        dataListCategory.Add(category);
 
-                        decimal precio = 0m;
-                        if (colPrecio > 0)
-                        {
-                            string precioText = worksheet.Cells[row, colPrecio].Text?.Trim() ?? "0";
-                            precio = ParseCellPrice(precioText);
-                        }
-
-                        var model = new ProductCreateCommand
-                        {
-                            image = imageName,
-                            Category = categoriaName,
-                            Name = name,
-                            Codigo = codigo,
-                            Description = descripcion,
-                            //Price = precio,
-                            TotalPrice = precio,
-                            State = true
-
-                        };
-
-                        dataList.Add(MapToEntity(model));
                     }
+
+                   //Continua obteniendo el resto de campos-
+                   string name = colProducto > 0 ? worksheet.Cells[row, colProducto].Text?.Trim() ?? "" : "";
+                   string codigo = colCodigo > 0 ? worksheet.Cells[row, colCodigo].Text?.Trim() ?? "" : "";
+
+                   string descripcion = (colDescripcion > 0 && string.IsNullOrEmpty(worksheet.Cells[row, colDescripcion].Text))
+                       ? string.Join(" ",
+                       (worksheet.Cells[row, colDescripcion].Text ?? "")
+                       .Split(' ', StringSplitOptions.RemoveEmptyEntries)) : "";
+
+                   decimal precio = 0m;
+                   if (colPrecio > 0)
+                    {
+                        string precioText = worksheet.Cells[row, colPrecio].Text?.Trim() ?? "0";
+                        precio = ParseCellPrice(precioText);
+                    }
+
+                   var model = new ProductCreateCommand
+                    {
+                        image = imageName,
+                        Category = category,
+                        Name = name,
+                        Codigo = codigo,
+                        Description = descripcion,
+                        State = true
+                    };
+
+                   dataList.Add(MapToEntity(model));
+                }
             }
 
+            await this.AddListCategorys(dataListCategory);
             await this.AddList(dataList);
 
         }

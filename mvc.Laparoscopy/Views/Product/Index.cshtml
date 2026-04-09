@@ -28,7 +28,6 @@
                  data-bs-target="#productModal"
                  data-name="@product.Name"
                  data-desc="@product.Description"
-                 data-price="@product.TotalPrice.ToString("C", new System.Globalization.CultureInfo("es-AR"))"
                  data-img="@(string.IsNullOrEmpty(product.Image) ? "/product-images/camera.png" : "/product-images/" + product.Image)"
                 >
                 @if(string.IsNullOrEmpty(product.Image))
@@ -55,9 +54,9 @@
                     </p>
 
                     <div class="mt-auto">
-                        <div class="product-price">
+@*                         <div class="product-price">
                             @product.TotalPrice.ToString("C", new System.Globalization.CultureInfo("es-AR"))
-                        </div>
+                        </div> *@
 
                         <small class="text-muted">@product.Codigo</small>
                     </div>

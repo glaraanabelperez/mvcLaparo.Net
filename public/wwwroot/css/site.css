@@ -1,0 +1,383 @@
+html {
+    font-size: 14px;
+}
+
+.conteiner_home_central {
+    margin: 0%;
+    max-width: 90%;
+    align-items: center !important;
+}
+
+h2 {
+    color: white;
+    font-size: 19px;
+    background-color: #85bfd8;
+    padding: 12px 30px;
+    border-end-start-radius: 25px;
+    margin: 0;
+    font-weight:300;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    margin-bottom: 60px;
+}
+
+
+/* HOME */
+
+
+/* CONTENEDOR PRINCIPAL */
+
+.top-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%
+}
+
+/* LOGO */
+.top-hero-logo img {
+    height: 70px;
+    object-fit: contain;
+}
+
+/* TITULO */
+.top-hero-title {
+    flex: 1;
+    display: flex;
+    justify-content: right;
+}
+
+    .top-hero-title h1 {
+        color: white;
+        font-size: 24px;
+        font-weight: 200;
+        background-color: #85bfd8;
+        padding: 12px 30px;
+        border-end-start-radius: 25px;
+        margin: 0;
+    }
+
+
+
+/* SOMBRA SUAVE */
+.box-shadow {
+    box-shadow: 0 2px 6px rgba(0,0,0,.15);
+}
+
+
+/* IMAGES */
+.principal-image {
+    padding: 0px !important;
+}
+/* contenedor imagen principal */
+.principal-image img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    padding: 0px !important;
+}
+
+
+/* FILAS */
+.containerRow {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: stretch;
+    gap: 20px;
+    padding: 0 !important;
+}
+
+
+/* ELEMENTOS DENTRO DE FILA */
+.elementRow img,
+.elementRow a {
+    flex: 1;
+}
+
+
+/* IMAGENES FILA */
+.elementRow img {
+    height: 240px;
+    object-fit: cover;
+}
+
+
+/* TEXTO EN FILA */
+.elementRow a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+}
+
+
+.divisor {
+    margin-bottom: 20px !important;
+}
+
+
+/* WHATSAPP FLOAT */
+.whatsapp-float {
+    position: fixed;
+    width: 60px;
+    height: 60px;
+    bottom: 25px;
+    right: 25px;
+    background-color: #25D366;
+    color: #fff;
+    border-radius: 50%;
+    text-align: center;
+    font-size: 28px;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.whatsapp-float i{
+    color:aliceblue;
+}
+    .whatsapp-float:hover {
+        background-color: #1ebe5d;
+        transform: scale(1.1);
+    }
+
+.whatsapp-icon {
+    line-height: 1;
+}
+
+
+/* NAV */
+.marginNav {
+    align-content: start;
+}
+
+
+
+/* RESPONSIVE GLOBAL */
+@media (max-width: 1210px) {
+
+    .top-hero {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .top-hero-title h1 {
+        font-size: 18px;
+        text-align: center;
+    }
+
+    /* filas pasan a columna */
+    .containerRow {
+        flex-direction: column;
+    }
+
+    .elementRow img {
+        height: 220px;
+    }
+
+    .conteiner_home_central {
+        max-width: 95%;
+    }
+}
+
+
+
+
+/* ===== PRODUCT GRID ===== */
+
+.product-card {
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .product-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+    }
+
+/* Imagen */
+
+.product-image-wrapper {
+    width: 100%;
+    height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: #fff;
+}
+
+.product-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain !important;
+    transition: .2s ease;
+
+}
+
+
+    /* cuando la imagen es chica */
+    /*.product-image.small-img {
+        transform: scale(1.35);
+    }*/
+
+    /* cuando la imagen es chica */
+    /*.product-image.big-img {
+        transform: scale(0.85);
+    }*/
+
+/* Texto */
+.product-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 6px;
+    line-height: 1.2;
+}
+
+.product-description {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 10px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Precio */
+.product-price {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #198754;
+}
+
+
+/*Contactenos*/
+
+.contact-container {
+    max-width: 1200px;
+    margin: 50px auto;
+    padding: 20px;
+}
+
+.contact-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+    .contact-header h2 {
+        color: #2f6f8f;
+        font-weight: 600;
+    }
+
+    .contact-header p {
+        color: #6c757d;
+    }
+
+.contact-content {
+    display: flex;
+    gap: 40px;
+}
+
+.contact-form {
+    flex: 1;
+}
+
+.contact-info {
+    flex: 1;
+    background-color: #f4f8fb;
+    padding: 30px;
+    border-radius: 8px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+    .form-control:focus {
+        border-color: #2f6f8f;
+        outline: none;
+    }
+
+.btn-contact {
+    background-color: #2f6f8f;
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+    .btn-contact:hover {
+        background-color: #24596f;
+    }
+
+.alert-success {
+    background-color: #d4edda;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+
+.contact-image img {
+    width: 100%;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+
+.consulta-float {
+    position: fixed;
+    width: 65px;
+    height: 65px;
+    bottom: 25px;
+    right: 25px;
+    background-color: #2f6f8f; /* azul médico */
+    color: #fff;
+    border-radius: 50%;
+    font-size: 28px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.25);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.consulta-float:hover {
+    background-color: #24596f;
+    transform: scale(1.1);
+}
+
+.contact-image i {
+    font-size: 70px;
+    color:dimgrey;
+    margin-top:20px;
+}

@@ -1,35 +1,65 @@
-﻿using Azure;
+﻿using AutoMapper;
+using CmmandService.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using mvc.Laparoscopy.Models;
+using QueryService;
+using QueryService.Models;
 using System.Net.Http;
 using System.Net.Http.Json;
+using Utils;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace mvc.Laparoscopy.Controllers
 {
     public class ProductController : Controller
     {
-        private readonly HttpClient _httpClient;
+        private readonly IProductServiceQuery queryService;
+        public IMapper mapper;
 
-        public ProductController(IHttpClientFactory httpClientFactory)
+        public ProductController(IProductServiceQuery queryService_, IMapper mapper)
         {
-            _httpClient = httpClientFactory.CreateClient("ProductsApi");
+            queryService = queryService_;
+            this.mapper = mapper;
         }
 
-        public async Task<IActionResult> Index(string? search, int page = 1)
+
+        [HttpGet]
+        public async Task<IActionResult> Index(
+            int? categoryId,
+            bool? favorite,
+            bool? discount,
+            bool? state,
+            string? search,
+            int page = 1)
         {
             int length = 50;
 
-            var response =
+            var response = await queryService.GetAll(
+                favorite,
+                discount,
+                state,
+                search,
+                page,
+                length
+            );
 
-                await _httpClient.GetFromJsonAsync<PagedResponse<ProductViewModel>>(
-                    $"list?Search={search}&From={page}&Length={length}"
-                );
+            //var result = new PagedResponse<ProductViewModel>
+            //{
+            //    Items = mapper.Map<List<ProductViewModel>>(response.Items),
+            //    Total = response.Total,
+            //    Page = response.Page,
+            //    Pages = response.Pages,
+            //    HasItems = response.HasItems
+            //};
 
-            if (response == null || !response.HasItems)
+            var result = mapper.Map<PagedResponse<ProductViewModel>>(response);
+
+            if (result == null || !result.HasItems)
                 return View(new PagedResponse<ProductViewModel>());
 
-            return View(response);
+            return View(result);
         }
 
+       
     }
 }

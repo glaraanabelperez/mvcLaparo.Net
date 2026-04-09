@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using mvc.Laparoscopy.Persistence;
@@ -11,13 +10,11 @@ namespace Repositorys
     {
         private readonly ILogger<GenericRepository> _logger;
         private readonly ApplicationDbContext _dbContext;
-        private readonly IMapper _mapper;
 
-        public GenericRepository(ApplicationDbContext dbContext, ILogger<GenericRepository> logger, IMapper mapper)
+        public GenericRepository(ApplicationDbContext dbContext, ILogger<GenericRepository> logger)
         {
             _dbContext = dbContext;
             _logger = logger;
-            _mapper = mapper;
         }
 
         public async Task<T> Add<T>(T entity)  where T : class 
@@ -47,8 +44,7 @@ namespace Repositorys
                 try
                 {
 
-                    await _dbContext.Database.ExecuteSqlRawAsync(
-                    "DELETE FROM Product");
+                    
 
                     var dbSet = _dbContext.Set<T>();
                     dbSet.AddRange(entity);
