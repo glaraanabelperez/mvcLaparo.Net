@@ -4,11 +4,12 @@ using System.Diagnostics;
 
 namespace mvc.Laparoscopy.Controllers
 {
-    public class HomeController : Controller
+    [Route("")]
+    public class ContactenosController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly ILogger<ContactenosController> _logger;
 
-        public HomeController(ILogger<HomeController> logger)
+        public ContactenosController(ILogger<ContactenosController> logger)
         {
             _logger = logger;
         }
@@ -19,9 +20,16 @@ namespace mvc.Laparoscopy.Controllers
         }
 
 
-        public IActionResult Login()
+        [HttpPost]
+        public IActionResult Contactenos(ContactoViewModel model)
         {
-            return View();
+            if (ModelState.IsValid)
+            {
+                // - Enviar email
+                TempData["MensajeEnviado"] = "OK";
+            }
+
+            return View(model);
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

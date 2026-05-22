@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using Models;
 using mvc.Laparoscopy.Persistence;
 using OfficeOpenXml;
+using Repositorys;
 using Repositorys.Interfaces;
 using System.Text.RegularExpressions;
 using Utils;
@@ -16,18 +17,19 @@ namespace CmmandService
 {
     public class ProductCommandService: IProductCommandService
     {
-        private readonly ILogger<ProductCommandService> logger;
-        public IGenericRepository commandGeneric;
+        private IGenericRepository commandGeneric;
+        private IProductRepository _productRepositor;
         private readonly ApplicationDbContext dbContext;
         private readonly IOptions<PathsOptions> _options;
         private string tempPath; 
         private string imagesPath;
 
-        public ProductCommandService(IOptions<PathsOptions> options, IGenericRepository command, ApplicationDbContext _dbContext, ILogger<ProductCommandService> _logger)
+        public ProductCommandService(IOptions<PathsOptions> options, IProductRepository productRepositor,
+            IGenericRepository command, ApplicationDbContext _dbContext)
         {
+            _productRepositor = productRepositor;
             commandGeneric = command;
             dbContext = _dbContext;
-            logger = _logger;
             _options= options;
             tempPath = _options.Value.tempPath;
             imagesPath = _options.Value.imagesPath;
@@ -49,9 +51,7 @@ namespace CmmandService
             catch (Exception ex)
             {
                 var msg = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
-                logger.LogWarning(msg);
-                res.Succeeded = false;
-                res.message = msg;
+                throw;
             }
             return res;
         }
@@ -66,7 +66,6 @@ namespace CmmandService
             catch (Exception ex)
             {            
                 var msg = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
-                logger.LogWarning(msg);
                 throw;
             }
         }//
@@ -75,11 +74,19 @@ namespace CmmandService
             var res = new ResultApp<Product?>();
             try
             {
-                CleanProducts();
-                var numberAgregated = await this.commandGeneric.AddRange<Product>(products);
-                RestoreImages(numberAgregated);
-                res.Succeeded = true;
-                res.message = "Creado";
+                var numberAgregated = await this._productRepositor.AddRangeAndCleanProduct(products);
+                if (numberAgregated)
+                {
+                    res.Succeeded = true;
+                    res.message = "Creado";
+                }
+                else
+                {
+                    res.Succeeded = false;
+                    res.message = "Hay un error en el excel y no se pudieron actualizar los datos";
+                }
+
+                    RestoreImages(numberAgregated);
 
             }
             catch (Exception ex)
@@ -91,9 +98,7 @@ namespace CmmandService
                 }
                    
                 var msg = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
-                logger.LogWarning(msg);
-                res.Succeeded = false;
-                res.message = msg;
+                throw;
             }
             return res;
         }//
@@ -113,22 +118,8 @@ namespace CmmandService
             }
             catch (IOException e)
             {
-                logger.LogWarning(e.Message);
                 throw;
             }          
-        }
-        public async void CleanProducts()//
-        {
-            try
-            {
-                await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM Product");
-            }
-            catch (Exception ex)
-            {
-                var msg = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
-                logger.LogWarning(msg);
-                throw;
-            }
         }
         private void BackupImages(string imagesPath, string tempPath)
         {
@@ -155,7 +146,6 @@ namespace CmmandService
             }
             catch (IOException e)
             {
-                logger.LogWarning(e.Message);
                 throw;
             }
         }
@@ -185,8 +175,8 @@ namespace CmmandService
                     .ToDictionaryAsync(c => c.Name, StringComparer.OrdinalIgnoreCase);
             return categories;
         }
-        public async Task ChargeData(IFormFile file)
-        {           
+        public async Task<ResultApp<Product?>> ChargeData(IFormFile file)
+        {
             var dataList = new List<Product>();
             var dataListCategory = new List<Category>();
 
@@ -281,9 +271,9 @@ namespace CmmandService
                    dataList.Add(MapToEntity(model));
                 }
             }
-
-            await this.AddListCategorys(dataListCategory);
-            await this.AddList(dataList);
+            if(dataListCategory.Count>0)
+                await this.AddListCategorys(dataListCategory);
+            return await this.AddList(dataList);
 
         }
 

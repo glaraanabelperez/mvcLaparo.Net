@@ -8,13 +8,11 @@ namespace Repositorys
 {
     public class GenericRepository : IGenericRepository
     {
-        private readonly ILogger<GenericRepository> _logger;
         private readonly ApplicationDbContext _dbContext;
 
-        public GenericRepository(ApplicationDbContext dbContext, ILogger<GenericRepository> logger)
+        public GenericRepository(ApplicationDbContext dbContext)
         {
             _dbContext = dbContext;
-            _logger = logger;
         }
 
         public async Task<T> Add<T>(T entity)  where T : class 
@@ -31,7 +29,6 @@ namespace Repositorys
                 catch (System.Exception ex)
                 {
                     string value = ((ex.InnerException != null) ? ex.InnerException!.Message : ex.Message);
-                    _logger.LogWarning(value);
                     throw;
                 }
             
@@ -44,12 +41,9 @@ namespace Repositorys
                 try
                 {
 
-                    
-
                     var dbSet = _dbContext.Set<T>();
                     dbSet.AddRange(entity);
                     var res = await _dbContext.SaveChangesAsync();
-                    _logger.LogWarning(res.ToString() + "sql");
 
                     await transac.CommitAsync();
                     return res > 0 ? true : false;
@@ -58,7 +52,6 @@ namespace Repositorys
                 {
                     await transac.RollbackAsync();
                     string value = ((ex.InnerException != null) ? ex.InnerException!.Message : ex.Message);
-                    _logger.LogWarning(value);
                     throw;
                 }
 
@@ -70,24 +63,7 @@ namespace Repositorys
             throw new NotImplementedException();
         }
 
-        public async Task DeleteAll()
-        {
-   
-                try
-                {
-                    await _dbContext.Database.ExecuteSqlRawAsync(
-                    "DELETE FROM Products"
-                     );
-
-                }
-                catch (System.Exception ex)
-                {                 
-                    string value = ((ex.InnerException != null) ? ex.InnerException!.Message : ex.Message);
-                    _logger.LogWarning(value);
-                    throw;
-                }
-
-        }
+      
 
         public async Task<T1> Update<T1>(T1 entity) where T1 : class
         {
@@ -107,7 +83,6 @@ namespace Repositorys
                 {
                     await transac.RollbackAsync();
                     string value = ((ex.InnerException != null) ? ex.InnerException!.Message : ex.Message);
-                    _logger.LogWarning(value);
                     throw;
                 }
 

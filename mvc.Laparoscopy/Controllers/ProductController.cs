@@ -15,8 +15,9 @@ namespace mvc.Laparoscopy.Controllers
     {
         private readonly IProductServiceQuery queryService;
         public IMapper mapper;
+        public ILogger<ProductController> _logger;
 
-        public ProductController(IProductServiceQuery queryService_, IMapper mapper)
+        public ProductController(IProductServiceQuery queryService_, IMapper mapper, ILogger<ProductController> logger)
         {
             queryService = queryService_;
             this.mapper = mapper;
@@ -52,12 +53,24 @@ namespace mvc.Laparoscopy.Controllers
             //    HasItems = response.HasItems
             //};
 
-            var result = mapper.Map<PagedResponse<ProductViewModel>>(response);
+            try
+            {
+                var result = mapper.Map<PagedResponse<ProductViewModel>>(response);
 
-            if (result == null || !result.HasItems)
+                if (result == null || !result.HasItems)
+                    return View(new PagedResponse<ProductViewModel>());
+
+                return View(result);
+            }
+            catch(Exception ex)
+            {
+                var message = ((ex.InnerException != null) ? ex.InnerException!.Message : ex.Message);
+                TempData["Error"] = "Hubo un problema en el sistema, comuniquelo al administrador.";
+                _logger.LogError(message);
                 return View(new PagedResponse<ProductViewModel>());
 
-            return View(result);
+            }
+
         }
 
        

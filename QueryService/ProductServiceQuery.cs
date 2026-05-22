@@ -12,18 +12,18 @@ namespace QueryService
     {
         private readonly ApplicationDbContext _dbContext;
         public IMapper mapper;
-        ILogger _logger;
 
-        public ProductServiceQuery(ApplicationDbContext dbContext, IMapper _mapper, ILogger<ProductServiceQuery> logger) { 
+        public ProductServiceQuery(ApplicationDbContext dbContext, IMapper _mapper) { 
             _dbContext = dbContext;
             mapper = _mapper;
-            _logger = logger;
         }
 
         public async Task<DataCollection<ProductDto>> GetAll( bool? Fauvorite, bool? Discount, bool? State,
             string? Search, int From =1, int Length =50)
         {
-            var query = await _dbContext.Products
+            try
+            {
+                var query = await _dbContext.Products
                 //.Include(x => x.Category)
                 //.Include(x => x.Discount_)
                 .Where(x => (Search == null || string.IsNullOrEmpty(Search) || x.Name.Contains(Search))
@@ -34,11 +34,16 @@ namespace QueryService
                  .OrderBy(x => x.Name)
                  .GetPagedAsync(From, Length);
 
-            _logger.LogInformation(query.ToString());
+                var result = mapper.Map<DataCollection<ProductDto>>(query);
 
-            var result = mapper.Map<DataCollection<ProductDto>>(query);
+                return result;
 
-            return result;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+            
         }
     
     }

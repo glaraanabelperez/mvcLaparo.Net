@@ -6,20 +6,13 @@ using mvc.Laparoscopy.Persistence;
 using QueryService;
 using Repositorys;
 using Repositorys.Interfaces;
+using Serilog;
 using Utils.Exception;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-
-// HttpClient para la API de productos
-//builder.Services.AddHttpClient("ProductsApi", client =>
-//{
-//    client.BaseAddress = new Uri("https://localhost:7036/");
-//});
-
-//Cors
 
 string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 builder.Services.AddCors(options =>
@@ -33,6 +26,9 @@ builder.Services.AddCors(options =>
                       });
 });
 
+var efLogPath = builder.Configuration["Paths:EfLogPath"]
+                ?? "./logs/eflog.txt";
+
 builder.Services.AddDbContext<ApplicationDbContext>(
     options =>
         options.UseMySql(
@@ -41,13 +37,29 @@ builder.Services.AddDbContext<ApplicationDbContext>(
         )
         .EnableSensitiveDataLogging()
         .LogTo(
-            message => System.Diagnostics.Debug.WriteLine(message),
-            LogLevel.Information
-        ),
+    message =>
+    {
+        var lines = message.Split(Environment.NewLine);
+
+        foreach (var line in lines)
+        {
+            File.AppendAllText(
+                efLogPath,
+                $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {line}{Environment.NewLine}"
+            );
+        }
+    },
+    LogLevel.Information
+),
     ServiceLifetime.Scoped
 );
 
 
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 // Add services to the container.
 builder.Services.AddTransient<IProductServiceQuery, ProductServiceQuery>();
@@ -55,16 +67,17 @@ builder.Services.AddTransient<IDiscountServiceQuery, DiscountServiceQuery>();
 
 builder.Services.AddTransient<IProductCommandService, ProductCommandService>();
 builder.Services.AddTransient<IGenericRepository, GenericRepository>();
+builder.Services.AddTransient<IProductRepository, ProductRepository>();
 
 
-builder.Services.AddMvc(option =>
-{
-    option.Filters.Add<ExceptionHandlerFilter>();
-});
+//builder.Services.AddMvc(option =>
+//{
+//    option.Filters.Add<ExceptionHandlerFilter>();
+//});
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddAutoMapper(
-    cfg => { }, // configuración
+    cfg => { },
     AppDomain.CurrentDomain.GetAssemblies()
 );
 
@@ -72,20 +85,27 @@ builder.Services.Configure<PathsOptions>(
     builder.Configuration.GetSection("Paths")
 );
 
-var tempPath = builder.Configuration["Paths:tempPath"];
+//var tempPath = builder.Configuration["Paths:tempPath"];
 var imagesPath = builder.Configuration["Paths:imagesPath"];
+var logs = builder.Configuration["Paths:logs"];
 
 var app = builder.Build();
+
+app.UseStaticFiles();
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 
 var imagesPathConfig = Path.IsPathRooted(imagesPath)
     ? imagesPath
     : Path.Combine(app.Environment.ContentRootPath, imagesPath);
 
-var tempPathConfig = Path.IsPathRooted(tempPath)
-    ? tempPath
-    : Path.Combine(app.Environment.ContentRootPath, tempPath);
 
+var logs_ = Path.IsPathRooted(logs)
+    ? logs
+    : Path.Combine(app.Environment.ContentRootPath, logs);
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -94,12 +114,16 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseStaticFiles(); // wwwroot
 
 
 if (!Directory.Exists(imagesPathConfig))
 {
     Directory.CreateDirectory(imagesPathConfig);
+}
+
+if (!Directory.Exists(logs_))
+{
+    Directory.CreateDirectory(logs_);
 }
 
 app.UseStaticFiles(new StaticFileOptions
@@ -108,20 +132,39 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = "/product-images"
 });
 
+if (!Directory.Exists(logs))
+{
+    Directory.CreateDirectory(logs);
+}
+
+
+try
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        db.Database.Migrate();
+    }
+}
+catch (Exception ex)
+{
+    Log.Error(ex, "Error migracion");
+}
 
 
 
 app.UseCors("MyAllowSpecificOrigins");
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
 
 app.UseRouting();
 
 app.UseAuthorization();
 
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapGet("/", context =>
+{
+    context.Response.Redirect("/home");
+    return Task.CompletedTask;
+});
 
 app.Run();

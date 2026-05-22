@@ -1,0 +1,82 @@
+# Visual Studio
+.vs/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build output
+bin/
+obj/
+out/
+publish/
+*.exe
+*.dll
+*.pdb
+
+# NuGet
+*.nupkg
+packages/
+project.lock.json
+**/project.assets.json
+
+# Rider / JetBrains
+.idea/
+*.iml
+*.sln.iml
+*.DotSettings.user
+
+# Logs / temporales
+logs/
+*.log
+*.log.*
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Configuración local y secretos (excluye appsettings y launchSettings)
+appsettings*.json
+!appsettings.json.example
+__Properties/launchSettings.json__
+secrets.json
+.env
+.env.*
+
+# Certificados, claves y credenciales
+*.pfx
+*.key
+*.pem
+*.cer
+*.der
+*.jks
+*.keystore
+
+# Bases de datos locales
+*.mdf
+*.ldf
+*.db
+*.sqlite
+*.sqlite3
+*.bak
+
+# Node / cliente
+node_modules/
+wwwroot/node_modules/
+
+# Pruebas / cobertura
+TestResults/
+coverage/
+*.coverage
+*.trx
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Otros
+.rider/
+*.log.lock
+.vsconfig

@@ -1,7 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using OfficeOpenXml;
+﻿using OfficeOpenXml;
 using OfficeOpenXml.Drawing;
-using Serilog.Core;
 using System.Drawing.Imaging;
 
 namespace CmmandService.Helper

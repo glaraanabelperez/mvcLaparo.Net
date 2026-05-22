@@ -3,6 +3,7 @@ using CmmandService.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using mvc.Laparoscopy.Models;
 using QueryService;
+using Repositorys;
 using System.Net.Http;
 using System.Net.Http.Json;
 
@@ -11,10 +12,12 @@ namespace mvc.Laparoscopy.Controllers
     public class ProductUploadController : Controller
     {
         private readonly IProductCommandService commandService;
+        private ILogger<ProductUploadController> _logger;
 
-        public ProductUploadController(IProductCommandService commandService_)
+        public ProductUploadController(IProductCommandService commandService_, ILogger<ProductUploadController> logger)
         {
             commandService = commandService_;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -35,13 +38,23 @@ namespace mvc.Laparoscopy.Controllers
 
             try
             {
-                await commandService.ChargeData(file);
+                var res = await commandService.ChargeData(file);
+                if(res.Succeeded == false)
+                {
+                    TempData["Error"] = res.message ?? "Error al cargar el archivo";
+                    return RedirectToAction(nameof(UploadForm));
+                }
                 TempData["Success"] = "Archivo cargado correctamente ✔";
+                _logger.LogInformation("Charge OK");
+
                 return RedirectToAction(nameof(UploadForm));
             }
             catch (Exception ex)
             {
-                TempData["Error"] = ex.Message;
+                var message = ((ex.InnerException != null) ? ex.InnerException!.Message : ex.Message);
+                TempData["Error"] = "Hubo un problema en el sistema, comuniquelo al administrador.";
+                _logger.LogError(message);
+
                 return RedirectToAction(nameof(UploadForm));
             }
         }

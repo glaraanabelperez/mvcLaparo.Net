@@ -1,8 +1,6 @@
-﻿using AutoMapper;
-using CmmandService.Interfaces;
+﻿using CmmandService.Interfaces;
 using CmmandService.ModelsCommand;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.Extensions.Logging;
 using Models;
 using mvc.Laparoscopy.Persistence;
 using Repositorys.Interfaces;
@@ -12,16 +10,13 @@ namespace CmmandService
 {
     public class UserCommandService: IUserCommandService
     {
-        private readonly ILogger<UserCommandService> _logger;
         private readonly ApplicationDbContext _dbContext;
         public IGenericRepository commandGeneric;
 
-        public UserCommandService(ApplicationDbContext dbContext, IGenericRepository command, 
-            ILogger<UserCommandService> logger)
+        public UserCommandService(ApplicationDbContext dbContext, IGenericRepository command)
         {
             _dbContext = dbContext;
             this.commandGeneric = command;
-            _logger = logger;
         }
 
         public async Task<ResultApp<User>> Add(UserCreateCommand command)
@@ -44,7 +39,6 @@ namespace CmmandService
                     await transac.RollbackAsync();
                     string value = ((ex.InnerException != null) ? ex.InnerException!.Message : ex.Message);
                     res.message = ex.Message;
-                    _logger.LogWarning(value);
                     throw;
                 }
                 return res;
