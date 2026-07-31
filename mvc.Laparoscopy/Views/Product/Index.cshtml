@@ -1,174 +1,419 @@
 @model mvc.Laparoscopy.Models.PagedResponse<mvc.Laparoscopy.Models.ProductViewModel>
-    @using System.Globalization
+@using QueryService.Models
 
-    @{
+@{
     ViewData["Title"] = "Productos";
+}
+
+
+<style>
+    /* Modern product grid - ajustado: más espacio y separadores muy sutiles */
+    :root{
+        --accent-celeste: #2c7be5;
+        --muted: #6c757d;
+        --card-border-light: rgba(15, 23, 42, 0.2);
+        --card-border-medium: rgba(15, 23, 42, 0.08);
+        --surface: #f6f9ff;
     }
 
-    <h2 class="mb-4">Productos</h2>
-<form method="get" asp-action="Index">
-    <div class="input-group mb-3">
-        <input type="text"
-               name="search"
-               value="@Context.Request.Query["search"]"
-               class="form-control"
-               placeholder="Buscar producto..." />
+    .products-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
 
-        <button type="submit" class="btn btn-primary">
-            Buscar
+    .search-box .input-group .form-control {
+        min-width: 220px;
+    }
+
+    /* Destacar la grilla: fondo claro, padding y radius para notar el contenedor */
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 2rem; /* aumentado para más espacio entre tarjetas */
+        margin-top: 1rem;
+        padding: 14px;
+        background: var(--surface);
+        border-radius: 12px;
+        border: 1px solid rgba(44,123,229,0.04);
+    }
+
+    /* wrapper directo para crear gutters y permitir líneas sutiles entre elementos */
+    .product-grid > div {
+        padding: 4px; /* espacio interior entre tarjetas y la grilla */
+    }
+
+    .product-card {
+        border-radius: 12px;
+        overflow: hidden;
+        transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, border-left-color .18s ease;
+        cursor: pointer;
+        background: #fff;
+        border: 1px solid var(--card-border-light); /* línea gris muy clarita */
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        /* sombra suave para separar visualmente filas */
+        box-shadow: 0 6px 18px rgba(16, 24, 40, 0.03);
+        border-left: 4px solid transparent; /* acento visible en hover */
+    }
+
+    .product-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 18px 40px rgba(16, 24, 40, 0.08);
+        border-color: var(--card-border-medium);
+        border-left-color: var(--accent-celeste);
+    }
+
+    /* Hacer que el título pueda ocupar 2 líneas y cortar después */
+    .product-title {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #111827;
+        line-height: 1.2;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    .product-image-wrapper {
+        background: linear-gradient(180deg, #ffffff, #fbfdff);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 160px;
+        overflow: hidden;
+        border-bottom: 1px solid rgba(15, 23, 42, 0.03);
+    }
+
+    .product-image {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        transition: transform .25s ease;
+    }
+
+    .product-card:hover .product-image {
+        transform: scale(1.04);
+    }
+
+    .product-body {
+        padding: 12px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex: 1 1 auto;
+    }
+
+    .product-category {
+        font-size: 0.75rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: .04em;
+    }
+
+    .product-subtitle {
+        margin: 0;
+        font-size: 0.95rem;
+        color: #374151;
+    }
+
+    .product-description {
+        color: #6b7280;
+        font-size: 0.9rem;
+        line-height: 1.25;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+    }
+
+    .product-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 14px 14px;
+        gap: 8px;
+    }
+
+    .product-codigo {
+        font-size: 0.85rem;
+        color: var(--muted);
+    }
+
+    /* Offcanvas tweaks */
+    .offcanvas .offcanvas-header {
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    /* Product modal - moderno, ligero y responsive */
+    .product-modal .modal-content {
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(15,23,42,0.06);
+        box-shadow: 0 20px 50px rgba(16,24,40,0.10);
+    }
+
+    .product-modal .modal-body {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        align-items: start;
+        padding: 1.25rem;
+    }
+
+    .product-modal .modal-image {
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        min-height:240px;
+        background: linear-gradient(180deg,#f7fbff,#ffffff);
+        border-radius: 8px;
+        padding: 8px;
+    }
+
+    .product-modal .modal-image img {
+        max-width:100%;
+        max-height:360px;
+        object-fit:contain;
+        border-radius:6px;
+    }
+
+    .product-modal .modal-info {
+        padding: 6px 2px;
+    }
+
+    .product-modal .modal-title {
+        margin: 0 0 8px;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color:#0f1724;
+    }
+
+    .product-modal .modal-category {
+        font-size: 0.85rem;
+        color: #6b7280;
+        text-transform:uppercase;
+        margin-bottom:8px;
+    }
+
+    .product-modal .modal-desc {
+        color:#374151;
+        font-size:0.95rem;
+        margin-bottom:12px;
+        line-height:1.35;
+    }
+
+    .product-modal .modal-meta {
+        font-size:0.9rem;
+        color:#6b7280;
+    }
+
+    .product-modal .modal-actions {
+        margin-top: 14px;
+        display:flex;
+        gap:8px;
+        flex-wrap:wrap;
+    }
+
+    /* Mobile: image first, info below */
+    @@media (max-width: 768px) {
+        .product-modal .modal-body {
+            grid-template-columns: 1fr;
+        }
+        .product-modal .modal-image { min-height: 180px; }
+    }
+
+    @@media (max-width: 576px) {
+        .product-image-wrapper { height: 140px; }
+        .product-body { padding: 10px; }
+        .product-title { font-size: 0.95rem; }
+        .product-grid { gap: 1rem; padding: 10px; }
+        .product-grid > div { padding: 2px; }
+    }
+</style>
+
+<h2 class="mb-4 products-header">
+    <span class="h4 mb-0">Productos</span>
+
+    <div class="d-flex align-items-center gap-2">
+        <form method="get" asp-action="Index" class="search-box d-flex align-items-center">
+            <div class="input-group">
+                <input type="text"
+                       name="search"
+                       value="@Context.Request.Query["search"]"
+                       class="form-control"
+                       placeholder="Buscar producto..." />
+@*                 <button type="submit" class="btn btn-primary" style="background-color:whitesmoke">Buscar</button>
+ *@            </div>
+        </form>
+
+        <button class="btn btn-secondary" style="color:aliceblue" type="button"
+                data-bs-toggle="offcanvas" data-bs-target="#filtersOffcanvas">
+            Filtros
         </button>
     </div>
-</form>
-    <div class="row">
-        @foreach (var product in Model.Items)
-{
-        <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
-            <div class="product-card card product-card h-100 shadow-sm"
-                 data-bs-toggle="modal"
-                 data-bs-target="#productModal"
+</h2>
+
+<div class="offcanvas offcanvas-start" tabindex="-1" id="filtersOffcanvas">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title">Filtros</h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+        <form method="get" asp-action="Index" id="filtersForm">
+            <input type="hidden" name="search" value="@Context.Request.Query["search"]" />
+            <vc:filter-menu selected-category-id="@(Context.Request.Query["categoryId"].ToString())"></vc:filter-menu>
+
+            <div class="d-grid gap-2 mt-3">
+                <button type="submit" class="btn btn-primary">Aplicar</button>
+                <a href="@Url.Action("Index", "Product")" class="btn btn-outline-secondary">Limpiar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="product-grid">
+    @foreach (var product in Model.Items)
+    {
+        var imgSrc = string.IsNullOrEmpty(product.Image) ? "/product-images/camera.png" : "/product-images/" + product.Image;
+        <div>
+            <div class="product-card" data-bs-toggle="modal" data-bs-target="#productModal"
+                 data-cate="@product.CategoryNameId"
                  data-name="@product.Name"
                  data-desc="@product.Description"
-                 data-img="@(string.IsNullOrEmpty(product.Image) ? "/product-images/camera.png" : "/product-images/" + product.Image)"
-                >
-                @if(string.IsNullOrEmpty(product.Image))
-                {
-                    <div class="product-image-wrapper">
-                        <img src="/images/camera.png"
-                             class="product-image" />
+                 data-cod="@product.Codigo"
+                 data-img="@imgSrc">
+
+                <div class="product-image-wrapper">
+                    <img src="@imgSrc" alt="@product.Name" class="product-image" />
+                </div>
+
+                <div class="product-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="product-category">Categoría</div>
+                            <div class="product-subtitle">@product.CategoryNameId</div>
+                        </div>
                     </div>
-                }
-                else
-                {
-                    <div class="product-image-wrapper product-image">
-                        <img src="/product-images/@product.Image"
-                             class="product-image" />
-                    </div>
-                }
-                
 
-                <div class="card-body d-flex flex-column">
-                    <h6 class="product-title">@product.Name</h6>
+                    <h3 class="product-title">@product.Name</h3>
 
-                    <p class="product-description">
-                        @product.Description
-                    </p>
+                    <p class="product-description">@product.Description</p>
+                </div>
 
-                    <div class="mt-auto">
-@*                         <div class="product-price">
-                            @product.TotalPrice.ToString("C", new System.Globalization.CultureInfo("es-AR"))
-                        </div> *@
-
-                        <small class="text-muted">@product.Codigo</small>
+                <div class="product-footer">
+                    <div class="product-codigo">Código: <small class="text-muted">@product.Codigo</small></div>
+                    <div>
+                        <button class="btn btn-sm btn-outline-primary" type="button"
+                                data-bs-toggle="modal" data-bs-target="#productModal"
+                                data-cate="@product.CategoryNameId" data-name="@product.Name"
+                                data-desc="@product.Description" data-cod="@product.Codigo"
+                                data-img="@imgSrc">Ver</button>
                     </div>
                 </div>
             </div>
         </div>
-}
-    </div>
-
-<div class="modal fade" id="productModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-
-            <div class="modal-body text-center">
-
-                    <div class="product-image-wrapper product-image">
-                        <img id="modalImg" 
-                             class="product-image" />
-                    </div>
-
-@*                 <img id="modalImg" class="img-fluid mb-3">
- *@
-                <h4 id="modalName"></h4>
-                <p id="modalDesc"></p>
-                <h5 class="text-success" id="modalPrice"></h5>
-
-            </div>
-
-        </div>
-    </div>
+    }
 </div>
 
-
-
-    @if (Model.Pages > 1)
+@if (Model.Pages > 1)
 {
-    <nav>
+    <nav class="mt-4 d-flex justify-content-center">
         <ul class="pagination">
             @for (int i = 1; i <= Model.Pages; i++)
             {
-            <li class="page-item @(i == Model.Page ? "active" : "")">
-                <a class="page-link"
-                   asp-action="Index"
-                   asp-route-page="@i">
-                    @i
-                </a>
-            </li>
+                <li class="page-item @(i == Model.Page ? "active" : "")">
+                    <a class="page-link"
+                       asp-action="Index"
+                       asp-route-page="@i"
+                       asp-route-categoryId="@(Context.Request.Query["categoryId"])"
+                       asp-route-search="@(Context.Request.Query["search"])">
+                        @i
+                    </a>
+                </li>
             }
         </ul>
     </nav>
 }
 
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
+<!-- Modal moderno y optimizado -->
+<div class="modal fade product-modal" id="productModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <div>
+                    <div id="modalCate" class="modal-category"></div>
+                    <h5 id="modalName" class="modal-title"></h5>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
 
-        document.querySelectorAll("img.product-image").forEach(img => {
+            <div class="modal-body">
+                <div class="modal-image" aria-hidden="false">
+                    <img id="modalImg" class="img-fluid" alt="Imagen producto" />
+                </div>
 
-            function checkSize(){
+                <div class="modal-info">
+                    <p id="modalDesc" class="modal-desc"></p>
+                    <div id="modalCod" class="modal-meta"></div>
 
+                    <div class="modal-actions">
+                        <a id="contactSupplier" class="btn btn-primary btn-sm" href="#" target="_blank">Contactar</a>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-                        const MAX_WIDTH = 293;
-            const MAX_HEIGHT = 220;
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Ensure images fit
+            document.querySelectorAll("img.product-image").forEach(img => {
+                function setMax() { img.style.maxHeight = "100%"; }
+                if (img.complete) setMax(); else img.onload = setMax;
+            });
 
-            const rect = img.getBoundingClientRect();
-            const realWidth = rect.width;
-            const realHeight = rect.height;
+            // Modal populate (optimizado, mínimo trabajo)
+            var productModal = document.getElementById("productModal");
+            if (productModal) {
+                productModal.addEventListener("show.bs.modal", function (event) {
+                    const card = event.relatedTarget;
+                    const name = card.dataset.name || "";
+                    const desc = card.dataset.desc || "";
+                    const cod = card.dataset.cod || "";
+                    const cate = card.dataset.cate || "";
+                    const img = card.dataset.img || "/product-images/camera.png";
 
-            // calcular escala en base a ambos límites
-            const scaleWidth = MAX_WIDTH / realWidth;
-            const scaleHeight = MAX_HEIGHT / realHeight;
+                    document.getElementById("modalName").textContent = name;
+                    document.getElementById("modalDesc").textContent = desc;
+                    document.getElementById("modalCod").textContent = cod ? "Código: " + cod : "";
+                    document.getElementById("modalCate").textContent = cate;
+                    var imgEl = document.getElementById("modalImg");
+                    imgEl.src = img;
+                    imgEl.alt = name;
 
-            // tomar el menor para no superar ninguno
-            const scale = Math.min(scaleWidth, scaleHeight, 1.2);
-
-            img.style.transform = `scale(${scale})`;
-            img.style.transformOrigin = "center";
-
-            console.log("width:", realWidth, "height:", realHeight, "scale:", scale);
-
-
-                }
-
-            // si ya cargó
-            if(img.complete){
-                checkSize();
+                    // Enviar por WhatsApp: incluye nombre, código e imagen (URL absoluta si es relativa)
+                    var contact = document.getElementById("contactSupplier");
+                    var waNumber = "5491163569488";
+                    // Convertir ruta relativa a absoluta para mejor vista previa en WhatsApp
+                    var imgUrl = img && img.startsWith("/") ? (location.origin + img) : img;
+                    var message = "Quisiera saber más sobre este producto: " +
+                                  "Nombre: " + name + "" +
+                                  (cod ? ("Código: " + cod + "") : "");
+                    contact.href = "https://wa.me/" + waNumber + "?text=" + encodeURIComponent(message);
+                });
             }
-            else{
-                img.onload = checkSize;
-            }
-
         });
-
-    });
-
-//
-    document.addEventListener("DOMContentLoaded", function () {
-
-        const modal = document.getElementById("productModal");
-
-        modal.addEventListener("show.bs.modal", function (event) {
-
-            const card = event.relatedTarget;
-
-            document.getElementById("modalName").textContent = card.dataset.name;
-            document.getElementById("modalDesc").textContent = card.dataset.desc;
-            document.getElementById("modalPrice").textContent = "$ " + card.dataset.price;
-            document.getElementById("modalImg").src = card.dataset.img;
-
-        });
-
-    });
-
-</script>
+    </script>
+}
 
 

@@ -1,32 +1,27 @@
 ﻿using AutoMapper;
-using CmmandService.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using mvc.Laparoscopy.Models;
 using QueryService;
-using QueryService.Models;
-using System.Net.Http;
-using System.Net.Http.Json;
-using Utils;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace mvc.Laparoscopy.Controllers
 {
     public class ProductController : Controller
     {
-        private readonly IProductServiceQuery queryService;
+        private readonly IProductServiceQuery queryServiceProduct;
         public IMapper mapper;
         public ILogger<ProductController> _logger;
 
-        public ProductController(IProductServiceQuery queryService_, IMapper mapper, ILogger<ProductController> logger)
+        public ProductController(IProductServiceQuery queryServiceProduct_, 
+            IMapper mapper, ILogger<ProductController> logger)
         {
-            queryService = queryService_;
+            queryServiceProduct = queryServiceProduct_;
             this.mapper = mapper;
         }
 
 
         [HttpGet]
         public async Task<IActionResult> Index(
-            int? categoryId,
+            string categoryId,
             bool? favorite,
             bool? discount,
             bool? state,
@@ -35,7 +30,8 @@ namespace mvc.Laparoscopy.Controllers
         {
             int length = 50;
 
-            var response = await queryService.GetAll(
+            var response = await queryServiceProduct.GetAll(
+                categoryId,
                 favorite,
                 discount,
                 state,
@@ -44,21 +40,12 @@ namespace mvc.Laparoscopy.Controllers
                 length
             );
 
-            //var result = new PagedResponse<ProductViewModel>
-            //{
-            //    Items = mapper.Map<List<ProductViewModel>>(response.Items),
-            //    Total = response.Total,
-            //    Page = response.Page,
-            //    Pages = response.Pages,
-            //    HasItems = response.HasItems
-            //};
-
             try
             {
                 var result = mapper.Map<PagedResponse<ProductViewModel>>(response);
 
                 if (result == null || !result.HasItems)
-                    return View(new PagedResponse<ProductViewModel>());
+                    throw new Exception("Error en los datos. Estos son null");
 
                 return View(result);
             }

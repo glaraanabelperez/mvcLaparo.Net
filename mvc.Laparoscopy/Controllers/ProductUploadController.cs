@@ -1,14 +1,10 @@
-﻿using AutoMapper;
-using CmmandService.Interfaces;
+﻿using CmmandService.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using mvc.Laparoscopy.Models;
-using QueryService;
-using Repositorys;
-using System.Net.Http;
-using System.Net.Http.Json;
 
 namespace mvc.Laparoscopy.Controllers
 {
+    [Authorize] // Protege todo el controlador; puedes aplicarlo solo en las acciones que quieras
     public class ProductUploadController : Controller
     {
         private readonly IProductCommandService commandService;
@@ -20,6 +16,7 @@ namespace mvc.Laparoscopy.Controllers
             _logger = logger;
         }
 
+        //Productupload/UploadForm
         [HttpGet]
         public IActionResult UploadForm()
         {

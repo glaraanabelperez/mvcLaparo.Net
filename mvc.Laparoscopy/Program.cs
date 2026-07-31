@@ -1,9 +1,11 @@
 using CmmandService;
 using CmmandService.Interfaces;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using mvc.Laparoscopy.Persistence;
 using QueryService;
+using QueryService.Interfaces;
 using Repositorys;
 using Repositorys.Interfaces;
 using Serilog;
@@ -11,8 +13,26 @@ using Utils.Exception;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.Services.AddScoped<Utils.Exception.ExceptionHandlerFilter>();
+
+
+builder.Services.AddMvc(options =>
+{
+    options.Filters.AddService<Utils.Exception.ExceptionHandlerFilter>();
+});
+
 builder.Services.AddControllersWithViews();
+
+// Authentication (cookie)
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.LogoutPath = "/Account/Logout";
+        options.Cookie.Name = "mvcLaparoAuth";
+        options.ExpireTimeSpan = TimeSpan.FromHours(8);
+    });
+
 
 string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 builder.Services.AddCors(options =>
@@ -25,6 +45,9 @@ builder.Services.AddCors(options =>
                           .AllowAnyMethod();
                       });
 });
+
+
+#region Logs y conection String
 
 var efLogPath = builder.Configuration["Paths:EfLogPath"]
                 ?? "./logs/eflog.txt";
@@ -61,9 +84,13 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
-// Add services to the container.
+#endregion
+
+
 builder.Services.AddTransient<IProductServiceQuery, ProductServiceQuery>();
 builder.Services.AddTransient<IDiscountServiceQuery, DiscountServiceQuery>();
+
+builder.Services.AddScoped<ICategoryServiceQuery, CategoryServiceQuery>();
 
 builder.Services.AddTransient<IProductCommandService, ProductCommandService>();
 builder.Services.AddTransient<IGenericRepository, GenericRepository>();
@@ -85,9 +112,14 @@ builder.Services.Configure<PathsOptions>(
     builder.Configuration.GetSection("Paths")
 );
 
-//var tempPath = builder.Configuration["Paths:tempPath"];
 var imagesPath = builder.Configuration["Paths:imagesPath"];
 var logs = builder.Configuration["Paths:logs"];
+
+
+builder.Services.Configure<EmailSettingsOptions>(
+    builder.Configuration.GetSection("Smtp")
+);
+
 
 var app = builder.Build();
 
@@ -97,6 +129,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+#region Configuracion de Rutas para imagenes
 
 var imagesPathConfig = Path.IsPathRooted(imagesPath)
     ? imagesPath
@@ -113,7 +146,6 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
-
 
 
 if (!Directory.Exists(imagesPathConfig))
@@ -137,7 +169,9 @@ if (!Directory.Exists(logs))
     Directory.CreateDirectory(logs);
 }
 
+#endregion
 
+//Migraciones Pomelo
 try
 {
     using (var scope = app.Services.CreateScope())

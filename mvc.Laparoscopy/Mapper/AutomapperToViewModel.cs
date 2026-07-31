@@ -17,7 +17,8 @@ namespace mvc.Laparoscopy.Mapper
             //CreateMap<UserUpdateCommand, Models.User>();
 
             //-- Profile  -----------
-            CreateMap<ProductViewModel,ProductDto>().ReverseMap();
+            CreateMap<CategoryViewModel,CategoryDto>().ReverseMap();
+            CreateMap<ProductViewModel, ProductDto>().ReverseMap();
             CreateMap(typeof(DataCollection<>), typeof(PagedResponse<>))
                 .ForMember("Items", opt => opt.MapFrom("Items"))
                 .ForMember("Total", opt => opt.MapFrom("Total"))

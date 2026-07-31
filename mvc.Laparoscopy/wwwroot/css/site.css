@@ -11,11 +11,11 @@ html {
 h2 {
     color: white;
     font-size: 19px;
-    background-color: #85bfd8;
+    background-color: #0b3b66;
     padding: 12px 30px;
     border-end-start-radius: 25px;
     margin: 0;
-    font-weight:300;
+    font-weight: 300;
 }
 
 @media (min-width: 768px) {
@@ -63,7 +63,7 @@ body {
         color: white;
         font-size: 24px;
         font-weight: 200;
-        background-color: #85bfd8;
+        background-color: #0b3b66;
         padding: 12px 30px;
         border-end-start-radius: 25px;
         margin: 0;
@@ -246,14 +246,14 @@ body {
     }*/
 
 /* Texto */
-.product-title {
+.product-name {
     font-weight: 600;
     font-size: 0.95rem;
     margin-bottom: 6px;
     line-height: 1.2;
 }
 
-.product-description {
+.product-description .product-category{
     font-size: 0.85rem;
     color: #6c757d;
     margin-bottom: 10px;
@@ -264,7 +264,7 @@ body {
 }
 
 /* Precio */
-.product-price {
+.product-codigo {
     font-size: 1.1rem;
     font-weight: 700;
     color: #198754;

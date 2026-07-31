@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Models;
 using mvc.Laparoscopy.Persistence;
 using QueryService.Models;
 using System.Linq;
@@ -18,15 +19,17 @@ namespace QueryService
             mapper = _mapper;
         }
 
-        public async Task<DataCollection<ProductDto>> GetAll( bool? Fauvorite, bool? Discount, bool? State,
+        public async Task<DataCollection<ProductDto>> GetAll( string? categoryId, bool? Fauvorite, bool? Discount, bool? State,
             string? Search, int From =1, int Length =50)
         {
             try
             {
                 var query = await _dbContext.Products
-                //.Include(x => x.Category)
-                //.Include(x => x.Discount_)
-                .Where(x => (Search == null || string.IsNullOrEmpty(Search) || x.Name.Contains(Search))
+                .Include(x => x.Category_)
+                .Include(x => x.Discount_)
+                .Where(x => (Search == null || string.IsNullOrEmpty(Search) ||(!string.IsNullOrEmpty(Search) 
+                                && !string.IsNullOrEmpty(x.Name) && x.Name.Contains(Search)))
+                            && (string.IsNullOrEmpty(categoryId) || (!string.IsNullOrEmpty(categoryId) && x.Category_.Name == categoryId))
                             && (Discount == null || Discount == false || (Discount == true && x.DiscountId != null))
                             && (Fauvorite == null || Fauvorite == false || (Fauvorite == true && x.Fauvorite == true))
                             && (State == null || State == false || (State == true && x.State == true))

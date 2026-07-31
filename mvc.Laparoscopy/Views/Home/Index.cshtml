@@ -2,35 +2,217 @@
     ViewData["Title"] = "Home Page";
 }
 
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-<div class="conteiner_home_central">
+<style>
+    :root{
+        --celeste: #2c7be5;
+        --celeste-dark: #245fd1;
+        --muted: #6b7280;
+        --card-border: rgba(15,23,42,0.04);
+        --bg: #ffffff;
+    }
 
-    <div class=" principal-image container-fluid  mb-3 divisor">
-        <img src="~/images/frente.png" alt="cirujia" />
-    </div>
+    body { font-family: "Poppins", system-ui, -apple-system, "Segoe UI", Arial; color: #0f1724; background: var(--bg); }
 
-    <h2 target="_blank"
-       aria-label="nosotros" style="margin-bottom:5px;">
-        La precisión que su talento exige, la calidad que sus pacientes merecen.
-    </h2>
+    /* Top full-width banner */
+    .top-banner {
+        width: 100%;
+        height: clamp(140px, 18vw, 300px); /* no muy alta, responsive */
+        background-image: url('@Url.Content("~/images/pinzas.jpg")');
+        background-size: cover;
+        background-position: center;
+        display: block;
+        position: relative;
+        box-shadow: 0 6px 24px rgba(12,37,78,0.06);
+        border-bottom: 4px solid rgba(44,123,229,0.06);
+        overflow: hidden;
+    }
+    .top-banner::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(255,255,255,0.0) 0%, rgba(255,255,255,0.65) 85%); /* sutil fade abajo */
+        pointer-events: none;
+    }
 
+    .home-wrap { max-width: 1200px; margin: 28px auto; padding: 0 16px; }
 
-    <div class="containerRow elementRow container-fluid box-shadow divisor">
-        <img src="~/images/laparoscopia-7.jpg" alt="cirujia" />
-        <img src="~/images/laparoscopia-6.jpg" alt="cirujia"  />
-    </div>
+    /* Hero */
+    .hero {
+        display: grid;
+        grid-template-columns: 1fr 460px;
+        gap: 28px;
+        align-items: center;
+        margin-bottom: 28px;
+    }
 
-    <div class="containerRow elementRow container-fluid box-shadow divisor" >
-        <p style="padding:15px" target="_blank"
-           aria-label="nosotros" style="margin-bottom:5px;">
-            <br>TE ASESORAMOS</br>
-            Contamos con un equipo profesional –de la salud- que busca generar soluciones que requieren y demandan nuestros clientes.
-            nos centramos en construir vínculos con nuestros proveedores y nuestros clientes, con bases solidas y de confianza que permitan relaciones comerciales de larga duración.
+    .hero-card {
+        padding: 8px 6px;
+    }
 
-        </p>
-        <img src="~/images/cirujano.jpg" alt="cirujia" style="padding: 12px" />
-    </div>
+    .eyebrow { color: var(--muted); font-weight:700; font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; margin-bottom:6px; }
+    .hero-title { font-size:2rem; line-height:1.05; margin:0 0 12px; font-weight:700; color:#07203a; }
+    .hero-sub { color:var(--muted); margin-bottom:18px; max-width:56ch; }
 
+    .hero-cta {
+        display:inline-block;
+        padding:12px 20px;
+        background: linear-gradient(90deg,var(--celeste),var(--celeste-dark));
+        color: #fff;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight:600;
+        box-shadow: 0 8px 20px rgba(44,123,229,0.12);
+        margin-right: 10px;
+    }
+
+    .hero-cta.secondary {
+        background: #0b3b66;
+        box-shadow: none;
+    }
+
+    .hero-image {
+        border-radius:12px;
+        overflow:hidden;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        box-shadow: 0 12px 40px rgba(16,24,40,0.06);
+        transition: transform .45s ease;
+        background: linear-gradient(180deg, rgba(250,252,255,0.6), rgba(255,255,255,0.4));
+    }
+    .hero-image img { width:100%; height:auto; display:block; object-fit:cover; }
+
+    .hero-image:hover { transform: translateY(-6px); }
+
+    /* Feature cards */
+    .features { display:grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap:18px; margin-top:12px; }
+    .feature {
+        background:#fff;
+        border-radius:12px;
+        padding:18px;
+        border:1px solid var(--card-border);
+        box-shadow:0 8px 30px rgba(11,61,102,0.03);
+        display:flex;
+        gap:12px;
+        align-items:flex-start;
+    }
+    .feature .icon {
+        width:56px;
+        height:56px;
+        border-radius:10px;
+        background: linear-gradient(180deg, rgba(44,123,229,0.06), rgba(44,123,229,0.02));
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        color: var(--celeste);
+        font-size:22px;
+        flex:0 0 56px;
+    }
+    .feature h4 { margin:0 0 6px; font-size:1.05rem; color:#07203a; }
+    .feature p { margin:0; color:var(--muted); font-size:0.95rem; }
+
+    /* Contact strip and thin blue line */
+    .contact-strip {
+        margin-top:28px;
+        padding:20px;
+        background: linear-gradient(180deg, rgba(44,123,229,0.03), rgba(44,123,229,0.01));
+        border-radius:10px;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:12px;
+    }
+    .contact-strip .txt { color:#07203a; font-weight:600; }
+    .contact-strip .btn { background:var(--celeste); color:#fff; padding:10px 16px; border-radius:8px; text-decoration:none; font-weight:600; }
+
+    .thin-line {
+        height:4px;
+        background: linear-gradient(90deg,var(--celeste),var(--celeste-dark));
+        margin-top:18px;
+        border-radius:2px;
+    }
+
+    /* Bottom decorative image */
+    .bottom-image {
+        margin-top:28px;
+        border-radius:12px;
+        overflow:hidden;
+        box-shadow: 0 18px 40px rgba(12,37,78,0.06);
+    }
+    .bottom-image img { width:100%; height:auto; display:block; object-fit:cover; max-height:260px; }
+
+    @@media (max-width: 980px) {
+        .hero { grid-template-columns: 1fr; }
+        .hero-image { order:-1; }
+    }
+    @@media (max-width: 560px) {
+        .hero-title { font-size:1.45rem; }
+        .home-wrap { margin: 18px auto; }
+    }
+</style>
+
+<!-- Top full-width banner -->
+<div class="top-banner" role="img" aria-label="Banner superior decorativo - pinzas"></div>
+
+<div class="home-wrap">
+    <section class="hero" role="region" aria-label="Hero">
+        <div class="hero-card">
+            <div class="eyebrow">Equipamiento endoscópico</div>
+
+            <h1 class="hero-title">
+                La precisión que su talento exige,<br/> la calidad que sus pacientes merecen.
+            </h1>
+
+            <p class="hero-sub">
+                Contamos con un equipo profesional –de la salud– que busca generar soluciones que requieren y demandan nuestros clientes.
+                Nos centramos en construir vínculos con proveedores y clientes para relaciones comerciales de larga duración.
+            </p>
+
+            <div class="cta-row">
+                <a class="hero-cta" asp-controller="Product" asp-action="Index">Ver productos</a>
+                <a class="hero-cta secondary" asp-controller="Contactenos" asp-action="Index">Contacto</a>
+            </div>
+        </div>
+
+        <div class="hero-image" aria-hidden="false">
+            <img src="~/images/frente.png" alt="Imagen principal" />
+        </div>
+    </section>
+
+    <section class="features" aria-label="Características">
+        <div class="feature">
+            <div class="icon"><i class="fa-solid fa-star-of-life" aria-hidden="true"></i></div>
+            <div>
+                <h4>Experiencia</h4>
+                <p>Contamos con una trayectoria de 80 años en el mercado argentino y latinoamericano.</p>
+            </div>
+        </div>
+
+        <div class="feature">
+            <div class="icon"><i class="fa-solid fa-headset" aria-hidden="true"></i></div>
+            <div>
+                <h4>Soporte</h4>
+                <p>Ofrecemos atención a nuestros clientes para preservar la calidad que nos distingue.</p>
+            </div>
+        </div>
+
+        <div class="feature">
+            <div class="icon"><i class="fa-solid fa-award" aria-hidden="true"></i></div>
+            <div>
+                <h4>Garantía</h4>
+                <p>Todos nuestros productos cuentan con garantía de fabricación.</p>
+            </div>
+        </div>
+    </section>
+
+    <div class="thin-line" aria-hidden="true"></div>
+
+    <section class="contact-strip" aria-label="Contacto">
+        <div class="txt">¿Querés asesoramiento? Dejá tu consulta y nos comunicamos.</div>
+        <a class="btn" asp-controller="Contactenos" asp-action="Index">Contacto</a>
+    </section>
 
 </div>
 

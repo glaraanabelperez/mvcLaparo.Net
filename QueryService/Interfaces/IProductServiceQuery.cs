@@ -6,7 +6,7 @@ namespace QueryService
 {
     public interface IProductServiceQuery
     {
-        Task<DataCollection<ProductDto>> GetAll(bool? Fauvorite, bool? Discount, bool? State,
+        Task<DataCollection<ProductDto>> GetAll(string categoryid, bool? Fauvorite, bool? Discount, bool? State,
             string? Search, int From, int Length);
 
     }

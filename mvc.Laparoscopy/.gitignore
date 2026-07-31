@@ -80,3 +80,5 @@ desktop.ini
 .rider/
 *.log.lock
 .vsconfig
+appsettings.Development.json
+appsettings.Production.json

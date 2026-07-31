@@ -8,6 +8,137 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/mvc.Laparoscopy.styles.css" asp-append-version="true" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        :root{
+            --primary-600: #07203a;
+            --primary-700: #07203a;
+            --muted: #6c757d;
+            --card-bg: #ffffff;
+            --glass: rgba(255,255,255,0.6);
+            --soft-border: rgba(18,18,18,0.04);
+        }
+
+        /* Top hero */
+        .top-hero {
+            background: linear-gradient(90deg, rgba(44,123,229,0.12), rgba(44,123,229,0.06));
+            padding: 18px 12px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border-radius: 8px;
+        }
+
+        .top-hero-logo img{
+            height: 56px;
+            width: auto;
+            object-fit: contain;
+            border-radius: 6px;
+            box-shadow: 0 6px 18px rgba(44,123,229,0.06);
+        }
+
+        .top-hero-title h1{
+            margin: 0;
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: whitesmoke;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: linear-gradient(180deg, #ffffff, #fbfdff);
+            padding: 0.65rem 1rem;
+        }
+
+        .navbar .navbar-brand {
+            font-weight: 700;
+            color: var(--primary-700);
+            letter-spacing: .02em;
+        }
+
+        .navbar .nav-link {
+            color: #1f2937;
+            margin-right: 6px;
+            padding: 8px 10px;
+            border-radius: 6px;
+            transition: background .12s ease, color .12s ease, transform .08s ease;
+        }
+
+        .navbar .nav-link:hover {
+            background: rgba(44,123,229,0.06);
+            color: var(--primary-700);
+            transform: translateY(-1px);
+        }
+
+        .navbar .nav-link.active,
+        .navbar .nav-item .nav-link:focus {
+            background: rgba(44,123,229,0.10);
+            color: var(--primary-700);
+            font-weight: 600;
+        }
+
+        /* WhatsApp floating button */
+        .whatsapp-float{
+            position: fixed;
+            right: 18px;
+            bottom: 24px;
+            z-index: 1050;
+            background: linear-gradient(180deg, #25D366, #128C7E);
+            color: #fff;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(18, 54, 33, 0.12);
+            transition: transform .12s ease, box-shadow .12s ease;
+        }
+
+        .whatsapp-float:hover{
+            transform: translateY(-4px);
+            box-shadow: 0 16px 40px rgba(18, 54, 33, 0.18);
+        }
+
+        /* Container / main */
+        .container main[role="main"]{
+            padding-top: 12px;
+            padding-bottom: 20px;
+        }
+
+        /* Footer */
+        footer.footer {
+            background: #f8fafc;
+            padding: 14px 0;
+            margin-top: 28px;
+            color: #6b7280;
+            font-size: 0.95rem;
+        }
+
+        footer.footer a{
+            color: var(--primary-700);
+            text-decoration: none;
+        }
+        footer.footer a:hover{ text-decoration: underline; }
+
+        /* Card subtle */
+        .card, .box-shadow {
+            border-radius: 10px;
+            background: var(--card-bg);
+            border: 1px solid var(--soft-border);
+        }
+
+        /* Utilities */
+        .muted-small { color: var(--muted); font-size: .9rem; }
+
+        /* Responsive tweaks */
+        @@media (max-width: 768px) {
+            .top-hero { flex-direction: column; align-items: flex-start; gap: 8px; padding: 12px; }
+            .top-hero-logo img { height: 48px; }
+            .top-hero-title h1 { font-size: 1rem; }
+        }
+
+    </style>
 </head>
 <body>
     <header>
@@ -44,19 +175,23 @@
                             <a class="nav-link text-dark" asp-area="" asp-controller="Product" asp-action="Index">Productos</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Contactenos">Contactenos</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Contactenos" asp-action="Index">Contactenos</a>
                         </li>
                     </ul>
                 </div>
             </div>
         </nav>
-        <a href="https://wa.me/5491112345678?text=Hola%20quisiera%20recibir%20asesoramiento"
+        <a href="https://wa.me/5491163569488?text=Hola%20quisiera%20recibir%20asesoramiento"
            class="whatsapp-float"
            target="_blank"
            aria-label="WhatsApp">
             <i class="fab fa-whatsapp"></i>
         </a>
     </header>
+
+    @* Sección opcional que las vistas pueden definir para hero/banner amplio *@
+    @RenderSection("Hero", required: false)
+
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
@@ -65,7 +200,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2024 - mvc.Laparoscopy - <a asp-area="" asp-controller="Home" asp-action="Contactenos">Contactenos</a>
+            &copy; 2024 - mvc.Laparoscopy - <a asp-area="" asp-controller="Contactenos" asp-action="Index">Contactenos</a>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

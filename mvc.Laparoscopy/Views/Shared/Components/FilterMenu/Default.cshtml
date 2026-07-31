@@ -1,0 +1,14 @@
+﻿@{
+}
+
+@model List<SelectListItem>
+
+<label class="form-label">Categoría</label>
+
+<select name="categoryId"
+        class="form-select"
+        asp-items="Model"
+        onchange="document.getElementById('filtersForm').submit()">
+    <option value="">Todas</option>
+</select>
+

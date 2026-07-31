@@ -186,7 +186,7 @@ namespace CmmandService
             using (var stream = file.OpenReadStream())
             using (var package = new ExcelPackage(stream))
             {
-                var worksheet = package.Workbook.Worksheets[0];
+                var worksheet = package.Workbook.Worksheets.FirstOrDefault();
                 if (worksheet == null)
                     throw new Exception("La hoja de cálculo está vacía.");
 

@@ -1,19 +1,227 @@
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
+
+@{
+    var fileInputId = "fileInput";
+}
+
 @if (TempData["Success"] != null)
 {
-    <div style="color: green;">
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
         @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }
 
 @if (TempData["Error"] != null)
 {
-    <div style="color: red;">
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
         @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }
-<div>
-    <form asp-controller="ProductUpload" asp-action="UploadFiles" method="post" enctype="multipart/form-data">
-        <input type="file" name="file" />
-        <button type="submit">Subir</button>
-    </form>
+
+<link rel="stylesheet" href="~/css/site.css" />
+<style>
+    /* Estilos específicos y responsivos para UploadForm */
+    .upload-card {
+        max-width: 820px;
+        margin: 24px auto;
+        border: 0;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .upload-hero {
+        background: linear-gradient(90deg, #2b6cb0 0%, #2c7be5 100%);
+        color: #fff;
+        padding: 20px;
+    }
+
+    .upload-hero h3 {
+        margin: 0;
+        font-weight: 600;
+    }
+
+    .upload-body {
+        padding: 20px;
+        background: #fff;
+    }
+
+    .dropzone {
+        border: 2px dashed #e3e6ea;
+        border-radius: 8px;
+        padding: 28px;
+        text-align: center;
+        transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+        cursor: pointer;
+        background: #fafbfd;
+    }
+
+    .dropzone.dragover {
+        border-color: #2c7be5;
+        background: rgba(44,123,229,0.04);
+        box-shadow: 0 2px 12px rgba(44,123,229,0.08);
+    }
+
+    .file-info {
+        margin-top: 12px;
+        font-size: 0.95rem;
+        color: #495057;
+    }
+
+    .btn-upload {
+        min-width: 140px;
+    }
+
+    .small-muted {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    @@media (max-width: 576px) {
+        .upload-card { margin: 12px; border-radius: 8px; }
+        .upload-hero { padding: 16px; }
+    }
+</style>
+
+<div class="card upload-card">
+    <div class="upload-hero d-flex align-items-center justify-content-between">
+        <div>
+            <h3>Subir archivo de productos</h3>
+            <div class="small-muted" style="color: whitesmoke">Sólo usuarios autenticados pueden subir archivos. Formatos permitidos: csv, xlsx, max 10MB.</div>
+        </div>
+        <div class="d-none d-md-block">
+            <i class="fa-solid fa-file-upload fa-2x"></i>
+        </div>
+    </div>
+
+    <div class="upload-body">
+        @if (User?.Identity?.IsAuthenticated == true)
+        {
+            <div class="mb-3 d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>Conectado como</strong>
+                    <div>@User.Identity.Name</div>
+                </div>
+                <div>
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-outline-secondary btn-sm">Cerrar sesión</button>
+                    </form>
+                </div>
+            </div>
+
+            <form asp-controller="ProductUpload" asp-action="UploadFiles" method="post" enctype="multipart/form-data" class="row g-3">
+                @Html.AntiForgeryToken()
+
+                <div class="col-12">
+                    <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="Arrastra el archivo aquí o haz clic para seleccionar">
+                        <p class="mb-1"><strong id="dzLabel">Arrastra el archivo aquí</strong></p>
+                        <p class="small-muted mb-2">o</p>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="btnSelect">Seleccionar archivo</button>
+                        <input id="@fileInputId" type="file" name="file" class="d-none" />
+                    </div>
+
+                    <div id="fileInfo" class="file-info" aria-live="polite"></div>
+                </div>
+
+                <div class="col-12 d-flex justify-content-end">
+                    <button id="submitBtn" type="submit" class="btn btn-primary btn-upload" disabled>Subir</button>
+                </div>
+            </form>
+        }
+        else
+        {
+            <div class="text-center py-4">
+                <p class="mb-2">No autenticado.</p>
+                <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("UploadForm","ProductUpload")" class="btn btn-primary">Iniciar sesión</a>
+            </div>
+        }
+    </div>
 </div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const fileInput = document.getElementById('@fileInputId');
+            const dropzone = document.getElementById('dropzone');
+            const btnSelect = document.getElementById('btnSelect');
+            const fileInfo = document.getElementById('fileInfo');
+            const submitBtn = document.getElementById('submitBtn');
+            const maxSizeBytes = 10 * 1024 * 1024; // 10MB
+            const allowedExtensions = ['csv', 'xlsx', 'xls'];
+
+            function humanFileSize(size) {
+                if (size === 0) return '0 B';
+                const i = Math.floor(Math.log(size) / Math.log(1024));
+                const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+                return (size / Math.pow(1024, i)).toFixed(2) + ' ' + sizes[i];
+            }
+
+            function setFileInfo(file) {
+                if (!file) {
+                    fileInfo.innerHTML = '';
+                    submitBtn.disabled = true;
+                    return;
+                }
+
+                const ext = (file.name.split('.').pop() || '').toLowerCase();
+                if (allowedExtensions.indexOf(ext) === -1) {
+                    fileInfo.innerHTML = '<span class="text-danger">Formato no permitido. Usa csv o xlsx.</span>';
+                    submitBtn.disabled = true;
+                    return;
+                }
+
+                if (file.size > maxSizeBytes) {
+                    fileInfo.innerHTML = '<span class="text-danger">Archivo demasiado grande. Máx 10MB.</span>';
+                    submitBtn.disabled = true;
+                    return;
+                }
+
+                fileInfo.innerHTML = '<strong>Archivo:</strong> ' + file.name + ' <span class="text-muted">(' + humanFileSize(file.size) + ')</span>';
+                submitBtn.disabled = false;
+            }
+
+            btnSelect.addEventListener('click', function () {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', function (ev) {
+                const file = ev.target.files[0];
+                setFileInfo(file);
+            });
+
+            // Drag & drop
+            ['dragenter', 'dragover'].forEach(evt =>
+                dropzone.addEventListener(evt, function (e) {
+                    e.preventDefault(); e.stopPropagation();
+                    dropzone.classList.add('dragover');
+                })
+            );
+            ['dragleave', 'drop'].forEach(evt =>
+                dropzone.addEventListener(evt, function (e) {
+                    e.preventDefault(); e.stopPropagation();
+                    dropzone.classList.remove('dragover');
+                })
+            );
+
+            dropzone.addEventListener('drop', function (e) {
+                const dt = e.dataTransfer;
+                const file = dt.files && dt.files[0];
+                if (file) {
+                    fileInput.files = dt.files;
+                    setFileInfo(file);
+                }
+            });
+
+            // keyboard accessibility: Enter/Space opens file dialog
+            dropzone.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    fileInput.click();
+                }
+            });
+        })();
+    </script>
+}

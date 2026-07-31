@@ -5,14 +5,20 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+  <ItemGroup>
+    <Content Include="logs\apilog_20260515" />
+    <Content Include="logs\apilog_20260517" />
+    <Content Include="logs\eflog.txt" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="15.1.3" />
+    <PackageReference Include="MailKit" Version="4.17.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.2-dev-00338" />
     <PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />
     <PackageReference Include="Serilog.Settings.Configuration" Version="8.0.1-dev-00583" />
-    <!--<PackageReference Include="Serilog.Sinks.File" Version="5.0.1-dev-00972" />-->
-    <!--<PackageReference Include="Serilog.Sinks.MSSqlServer" Version="6.6.1-dev-00077" />-->
+    <PackageReference Include="Serilog.Sinks.File" Version="8.0.0-nblumhardt-02322" />
+ 
   </ItemGroup>
 
   <ItemGroup>

@@ -5,8 +5,7 @@ namespace QueryService.Models
     public class ProductDto
     {
         public int? Id { get; set; }
-        public int CategoryId { get; set; }
-        public string CategoryName { get; set; }
+        public string? CategoryNameId { get; set; }
         public string? Codigo { get; set; }
 
         public int? DiscountId { get; set; }
